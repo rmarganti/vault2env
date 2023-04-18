@@ -1,4 +1,4 @@
-package fetcher
+package puller
 
 import (
 	"context"
@@ -22,11 +22,18 @@ func VaultToEnv(cfg *config.Config) error {
 
 	err = writeEnv(secrets)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Wrote Vault secrets to .env")
+
+	return nil
 }
 
 // Fetch the secrets from Vault.
 func fetchSecrets(cfg *config.Config) (*vault.KVSecret, error) {
+	fmt.Println("Fetching secrets from Vault…")
 	vaultConfig := vault.DefaultConfig()
 	vaultConfig.Timeout = time.Second * 10
 
@@ -36,13 +43,7 @@ func fetchSecrets(cfg *config.Config) (*vault.KVSecret, error) {
 		return nil, fmt.Errorf("Error creating Vault client: %w", err)
 	}
 
-	token, err := findToken()
-
-	if err != nil {
-		return nil, fmt.Errorf("Error finding Vault token: %w", err)
-	}
-
-	client.SetToken(token)
+	client.SetToken(cfg.Token)
 	secrets, err := client.KVv1(cfg.MountPath).Get(context.Background(), cfg.SecretPath)
 
 	if err != nil {
@@ -52,43 +53,9 @@ func fetchSecrets(cfg *config.Config) (*vault.KVSecret, error) {
 	return secrets, nil
 }
 
-// Find a Vault token to use. First, check the VAULT_TOKEN environment variable.
-// If that's not set, check the ~/.vault-token file.
-func findToken() (string, error) {
-	// Try the VAULT_TOKEN environment variable
-
-	token := os.Getenv("VAULT_TOKEN")
-
-	if token != "" {
-		return token, nil
-	}
-
-	// Read the ~/.vault-token file
-	home, err := os.UserHomeDir()
-
-	if err != nil {
-		return "", fmt.Errorf("Error getting user home directory: %w", err)
-	}
-
-	// Try to read from ~/.vault-token
-
-	tokenFile, err := os.Open(home + "/.vault-token")
-
-	if err != nil {
-		return "", fmt.Errorf("Error opening Vault token file: %w", err)
-	}
-
-	_, err = fmt.Fscan(tokenFile, &token)
-
-	if err != nil {
-		return "", fmt.Errorf("Error reading Vault token file: %w", err)
-	}
-
-	return token, nil
-}
-
 // Write the secrets from Vault to the .env file.
 func writeEnv(secrets *vault.KVSecret) error {
+	fmt.Println("Writing secrets to .env…")
 	envFile, err := os.Create(".env")
 
 	if err != nil {
