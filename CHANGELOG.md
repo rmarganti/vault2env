@@ -8,3 +8,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 -   feat: Fetch secrets from a Vault path and write them to an `.env` file.
+-   feat: Push secrets from an `.env` file to a Vault path.
