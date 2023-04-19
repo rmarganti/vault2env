@@ -34,3 +34,9 @@ Secrets in your local `.env` will be stored in Vault.
 ```sh
 vault2env push
 ```
+
+## Options
+
+| option     | description                                           |
+| ---------- | ----------------------------------------------------- |
+| `--config` | Path to a config file. Defaults to `.vault2env.json`. |
