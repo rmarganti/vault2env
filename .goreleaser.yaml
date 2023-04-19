@@ -26,17 +26,17 @@ archives:
           - goos: windows
             format: zip
 brews:
-    tap:
-        owner: rmarganti
-        name: homebrew-tap
+    - tap:
+          owner: rmarganti
+          name: homebrew-tap
 
-    commit_author:
-        name: rmarganti
-        email: ryan.marganti@gmail.com
+      commit_author:
+          name: rmarganti
+          email: ryan.marganti@gmail.com
 
-    homepage: "https://github.com/rmarganti/vault2env"
-    description: "Sync secrets between Vault and an .env file"
-    skip_upload: auto
+      homepage: 'https://github.com/rmarganti/vault2env'
+      description: 'Sync secrets between Vault and an .env file'
+      skip_upload: auto
 
 checksum:
     name_template: 'checksums.txt'
