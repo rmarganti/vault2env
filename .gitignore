@@ -1,3 +1,5 @@
 /dist
 .env
 .vault2env.json
+
+dist/

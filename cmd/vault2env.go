@@ -22,36 +22,29 @@ func main() {
 		command = os.Args[1]
 	}
 
+	err = run(command, config)
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run(command string, config *config.Config) error {
 	switch command {
 	case "pull":
-		pull(config)
+		return puller.VaultToEnv(config)
 
 	case "push":
-		push(config)
+		return pusher.EnvToVault(config)
 
 	case "help":
 	default:
 		showHelp()
+		return nil
 	}
 
-}
-
-func pull(config *config.Config) {
-	err := puller.VaultToEnv(config)
-
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-}
-
-func push(config *config.Config) {
-	err := pusher.EnvToVault(config)
-
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	return nil
 }
 
 func showHelp() {
