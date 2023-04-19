@@ -14,11 +14,11 @@ type Config struct {
 
 // Load creates a new Config object from a `.vault2env.json`
 // file in the current working directory.
-func Load() (*Config, error) {
-	configFile, err := os.Open(".vault2env.json")
+func Load(path *string) (*Config, error) {
+	configFile, err := os.Open(*path)
 
 	if err != nil {
-		return nil, fmt.Errorf("Unable to load .vault2env.json: %w", err)
+		return nil, fmt.Errorf("Unable to load config: %w", err)
 	}
 
 	var config Config
