@@ -1,6 +1,7 @@
 before:
     hooks:
         - go mod tidy
+
 builds:
     - main: ./cmd/vault2env.go
       env:
@@ -24,10 +25,25 @@ archives:
       format_overrides:
           - goos: windows
             format: zip
+brews:
+    tap:
+        owner: rmarganti
+        name: homebrew-tap
+
+    commit_author:
+        name: rmarganti
+        email: ryan.marganti@gmail.com
+
+    homepage: "https://github.com/rmarganti/vault2env"
+    description: "Sync secrets between Vault and an .env file"
+    skip_upload: auto
+
 checksum:
     name_template: 'checksums.txt'
+
 snapshot:
     name_template: '{{ incpatch .Version }}-next'
+
 changelog:
     sort: asc
     filters:
@@ -37,4 +53,4 @@ changelog:
 # The lines beneath this are called `modelines`. See `:help modeline`
 # Feel free to remove those if you don't want/use them.
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
-# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+# vim: set ts=4 sw=2 tw=0 fo=cnqoj
