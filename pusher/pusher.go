@@ -6,14 +6,20 @@ import (
 	"os"
 	"time"
 
-	envParse "github.com/hashicorp/go-envparse"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/rmarganti/vault2env/config"
 )
 
 // EnvToVault fetches secrets from a .env file and writes them to Vault.
 func EnvToVault(cfg *config.Config) error {
-	secrets, err := fetchSecrets()
+	var secrets *map[string]string
+	var err error
+
+	if isInputPiped() {
+		secrets, err = readSecrets(os.Stdin)
+	} else {
+		secrets, err = readSecretsFromFile()
+	}
 
 	if err != nil {
 		return err
@@ -25,32 +31,14 @@ func EnvToVault(cfg *config.Config) error {
 		return err
 	}
 
-	fmt.Println("Wrote .env secrets to Vault")
+	fmt.Fprintln(os.Stderr, "Wrote .env secrets to Vault")
 
 	return nil
 }
 
-// Fetch the secrets from the .env file.
-func fetchSecrets() (*map[string]string, error) {
-	fmt.Println("Reading secrets from .env…")
-	envFile, err := os.Open(".env")
-
-	if err != nil {
-		return nil, fmt.Errorf("Error opening .env file: %w", err)
-	}
-
-	secrets, err := envParse.Parse(envFile)
-
-	if err != nil {
-		return nil, fmt.Errorf("Error parsing .env file: %w", err)
-	}
-
-	return &secrets, nil
-}
-
 // Write the secrets from the .env file to Vault.
 func writeVault(cfg *config.Config, secrets *map[string]string) error {
-	fmt.Println("Writing secrets to Vault…")
+	fmt.Fprintln(os.Stderr, "Writing secrets to Vault…")
 	vaultConfig := vault.DefaultConfig()
 	vaultConfig.Timeout = time.Second * 10
 
