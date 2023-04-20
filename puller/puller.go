@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"sort"
-	"strconv"
 	"time"
 
 	vault "github.com/hashicorp/vault/api"
@@ -20,20 +18,22 @@ func VaultToEnv(cfg *config.Config) error {
 		return err
 	}
 
-	err = writeEnv(secrets)
+	if isOutputPiped() {
+		err = writeEnv(os.Stdout, secrets)
+	} else {
+		err = writeEnvToFile(secrets)
+	}
 
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("Wrote Vault secrets to .env")
 
 	return nil
 }
 
 // Fetch the secrets from Vault.
 func fetchSecrets(cfg *config.Config) (*vault.KVSecret, error) {
-	fmt.Println("Fetching secrets from Vault…")
+	fmt.Fprintln(os.Stderr, "Fetching secrets from Vault…")
 	vaultConfig := vault.DefaultConfig()
 	vaultConfig.Timeout = time.Second * 10
 
@@ -51,37 +51,4 @@ func fetchSecrets(cfg *config.Config) (*vault.KVSecret, error) {
 	}
 
 	return secrets, nil
-}
-
-// Write the secrets from Vault to the .env file.
-func writeEnv(secrets *vault.KVSecret) error {
-	fmt.Println("Writing secrets to .env…")
-	envFile, err := os.Create(".env")
-
-	if err != nil {
-		return fmt.Errorf("Error opening .env file: %w", err)
-	}
-
-	sortedKeys := make([]string, 0, len(secrets.Data))
-	for key := range secrets.Data {
-		sortedKeys = append(sortedKeys, key)
-	}
-	sort.Strings(sortedKeys)
-
-	for _, key := range sortedKeys {
-		value := fmt.Sprint(secrets.Data[key])
-
-		_, err = fmt.Fprintf(
-			envFile,
-			"%s=%s\n",
-			key,
-			strconv.Quote(value),
-		)
-
-		if err != nil {
-			return fmt.Errorf("Error writing to .env file: %w", err)
-		}
-	}
-
-	return nil
 }
