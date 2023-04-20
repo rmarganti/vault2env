@@ -19,6 +19,7 @@ Sync secrets between [Vault](https://www.vaultproject.io/) and a local `.env`.
 
     ```json
     {
+        "$schema": "https://raw.githubusercontent.com/rmarganti/vault2env/main/vault2env.schema.json",
         "mountPath": "secret",
         "secretPath": "path/to/your/secrets"
     }
