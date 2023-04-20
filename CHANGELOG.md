@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   JSON schema definition for config file.
+
 ### Changed
 
 -   Release GH action uses a PAT instead of a GITHUB_TOKEN.
