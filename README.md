@@ -1,7 +1,16 @@
 # vault2env
 
-This utility will fetch secrets from a Hashicorp Vault server and write them to
-a file in a format that can be sourced by a shell or dotenv.
+Sync secrets between [Vault](https://www.vaultproject.io/) and a local `.env`.
+
+## Installation
+
+-   Binaries can be downloaded from the [releases page](https://github.com/rmarganti/vault2env/releases).
+-   Mac users can install via Homebrew:
+
+    ```sh
+    brew tap rmarganti/tap
+    brew install vault2env
+    ```
 
 ## Configuration
 
