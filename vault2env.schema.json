@@ -1,0 +1,20 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/rmarganti/vault2env/main/vault2env.schema.json",
+    "title": "vault2env config",
+    "description": "A configuration file for vault2env",
+    "type": "object",
+    "properties": {
+        "mountPath": {
+            "description": "The path to the Vault KV secret engine mount",
+            "type": "string",
+            "default": "secret"
+        },
+        "secretPath": {
+            "description": "The path to the secret within the Vault secret engine",
+            "type": "string",
+            "minLength": true
+        }
+    },
+    "required": ["secretPath", "mountPath"]
+}
