@@ -1,5 +1,5 @@
 /dist
-.env
+*.env
 .vault2env.json
-
-dist/
+.vault2env.*.json
+!.vault2env.default.json

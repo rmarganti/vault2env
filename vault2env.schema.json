@@ -4,17 +4,33 @@
     "title": "vault2env config",
     "description": "A configuration file for vault2env",
     "type": "object",
+
     "properties": {
-        "mountPath": {
-            "description": "The path to the Vault KV secret engine mount",
-            "type": "string",
-            "default": "secret"
-        },
-        "secretPath": {
-            "description": "The path to the secret within the Vault secret engine",
-            "type": "string",
-            "minLength": true
+        "presets": {
+            "description": "Pre-configured pairs of origin and target sources",
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "$ref": "#/definitions/preset"
+                }
+            }
         }
     },
-    "required": ["secretPath", "mountPath"]
+
+    "definitions": {
+        "preset": {
+            "type": "object",
+            "properties": {
+                "from": {
+                    "description": "The origin source",
+                    "type": "string"
+                },
+                "to": {
+                    "description": "The target source",
+                    "type": "string"
+                }
+            },
+            "required": ["from", "to"]
+        }
+    }
 }
