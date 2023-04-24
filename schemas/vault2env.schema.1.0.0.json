@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/rmarganti/vault2env/main/vault2env.schema.json",
+    "$id": "https://raw.githubusercontent.com/rmarganti/vault2env/main/schemas/vault2env.schema.1.0.0.json",
     "title": "vault2env config",
     "description": "A configuration file for vault2env",
     "type": "object",

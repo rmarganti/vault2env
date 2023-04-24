@@ -34,7 +34,7 @@ For convenience, you can define presets in a config file and then reference them
 
     ```json
     {
-        "$schema": "https://raw.githubusercontent.com/rmarganti/vault2env/main/vault2env.schema.json",
+        "$schema": "https://raw.githubusercontent.com/rmarganti/vault2env/main/schemas/vault2env.schema.1.0.0.json",
         "presets": {
             "pull": {
                 "from": "vault://secrets/you/secret/path",
