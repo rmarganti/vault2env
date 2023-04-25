@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   feat: JSON schema definition for config file.
 -   feat: Input and output can be piped.
+-   ci: linting
 
 ### Changed
 
