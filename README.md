@@ -12,38 +12,45 @@ Sync secrets between [Vault](https://www.vaultproject.io/) and a local `.env`.
     brew install vault2env
     ```
 
-## Configuration
+## Syncing secrets between sources
 
-1. Save a `.vault2env.json` file to your project's root directory. It is a JSON
+```sh
+vault2env --from vault://secrets/you/secret/path --to file://.env
+```
+
+The `--from` and `--to` options can be any of the following:
+
+-   `file://<path/to/your.env>` - Any .env file on your local file system.
+-   `vault://<secretMountPath>/<path/to/your/secrets>` - A vault secret path.
+    Note that `secretMountPath` is usually "secret" for most default configurations.
+
+## Using presets
+
+For convenience, you can define presets in a config file and then reference them on the command line.
+
+1. First, create a config file by running `vault2env init`.
+2. This will create a `.vault2env.json` file to your project's root directory. It is a JSON
    file that looks like the following:
 
     ```json
     {
-        "$schema": "https://raw.githubusercontent.com/rmarganti/vault2env/main/vault2env.schema.json",
-        "mountPath": "secret",
-        "secretPath": "path/to/your/secrets"
+        "$schema": "https://raw.githubusercontent.com/rmarganti/vault2env/main/schemas/vault2env.schema.1.0.0.json",
+        "presets": {
+            "pull": {
+                "from": "vault://secrets/you/secret/path",
+                "to": "file://.env"
+            },
+            "push": {
+                "from": "file://.env",
+                "to": "vault://secrets/you/secret/path"
+            }
+        }
     }
     ```
 
-2. Ensure your Vault toke is stored either in the `VAULT_TOKEN` environment
-   variable or in the `~/.vault-token` file.
-
-## Pulling secrets from Vault
-
-Your secrets will be downloaded and stored in the `.env` file in the current
-working directory.
-
-```sh
-vault2env pull
-```
-
-## Pushing secrets to Vault
-
-Secrets in your local `.env` will be stored in Vault.
-
-```sh
-vault2env push
-```
+3. You can now run these presets by referencing them by name. To run the above,
+   run either `vault2env pull` or `vault2env push`.
+4. You can create and modify as many presets as are appropriate for your project.
 
 ## Options
 

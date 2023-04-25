@@ -6,57 +6,51 @@ import (
 	"os"
 
 	"github.com/rmarganti/vault2env/config"
-	"github.com/rmarganti/vault2env/puller"
-	"github.com/rmarganti/vault2env/pusher"
+	"github.com/rmarganti/vault2env/job"
 )
 
 func main() {
-	configPath := flag.String("config", ".vault2env.json", "Config file path")
+	args := parseArgs()
+
+	cfg, err := config.Load(args.configPath)
+	checkErr(err)
+
+	job, err := job.New(cfg, args.from, args.to, args.preset)
+	checkErr(err)
+
+	err = job.Run()
+	checkErr(err)
+}
+
+type Args struct {
+	configPath string
+	from       string
+	to         string
+	preset     string
+}
+
+func parseArgs() Args {
+	configPath := flag.String("config", config.DefaultFilePath, "Config file path")
+	from := flag.String("from", "", "Source to pull from")
+	to := flag.String("to", "", "Source to write to")
 	flag.Parse()
 
-	config, err := config.Load(configPath)
+	preset := ""
+	if len(flag.Args()) > 0 {
+		preset = flag.Args()[0]
+	}
 
+	return Args{
+		configPath: *configPath,
+		from:       *from,
+		to:         *to,
+		preset:     preset,
+	}
+}
+
+func checkErr(err error) {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-
-	args := flag.Args()
-
-	command := ""
-	if len(args) > 0 {
-		command = args[0]
-	}
-
-	err = run(command, config)
-
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-}
-
-func run(command string, config *config.Config) error {
-	switch command {
-	case "pull":
-		return puller.VaultToEnv(config)
-
-	case "push":
-		return pusher.EnvToVault(config)
-
-	case "help":
-	default:
-		showHelp()
-		return nil
-	}
-
-	return nil
-}
-
-func showHelp() {
-	fmt.Fprintln(os.Stderr, "Usage: vault2env [--config=<config_file>] <command>")
-	fmt.Fprintln(os.Stderr, "Commands:")
-	fmt.Fprintln(os.Stderr, "  pull: Pull secrets from Vault and write to .env")
-	fmt.Fprintln(os.Stderr, "  push: Push secrets from .env to Vault")
-	fmt.Fprintln(os.Stderr, "  help: Show this help")
 }

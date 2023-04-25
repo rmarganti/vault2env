@@ -9,19 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--   JSON schema definition for config file.
--   Input and output can be piped.
+-   feat: JSON schema definition for config file.
+-   feat: Input and output can be piped.
 -   ci: linting
 
 ### Changed
 
--   Release GH action uses a PAT instead of a GITHUB_TOKEN.
+-   feat!: Sources are referenced by URIs.
+-   feat!: V2 of the config schema.
+-   ci: Release GH action uses a PAT instead of a GITHUB_TOKEN.
+
+### Fixed
+
+-   fix: Correct param name in missing `secretPath` error.
 
 ## [0.1.1] - 2023-04-19
 
 ### Added
 
--   Homebrew tap
+-   feat: Homebrew tap
 
 ## [0.1.0] - 2023-04-19
 
