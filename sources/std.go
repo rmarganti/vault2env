@@ -2,14 +2,15 @@ package sources
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 )
 
 type stdSource struct {
 }
 
-func newStdSource() *stdSource {
-	return &stdSource{}
+func newStdSourceFromURI(uri *url.URL) (Source, error) {
+	return &stdSource{}, nil
 }
 
 func (src *stdSource) ReadSecrets() (secretsMap, error) {

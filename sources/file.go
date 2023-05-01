@@ -2,6 +2,7 @@ package sources
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 )
 
@@ -9,8 +10,9 @@ type fileSource struct {
 	path string
 }
 
-func newFileSource(path string) *fileSource {
-	return &fileSource{path: path}
+func newFileSourceFromURI(uri *url.URL) (Source, error) {
+	path := uri.Host + uri.Path
+	return &fileSource{path: path}, nil
 }
 
 func (src *fileSource) ReadSecrets() (secretsMap, error) {

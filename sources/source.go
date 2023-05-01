@@ -3,14 +3,29 @@ package sources
 import (
 	"fmt"
 	"net/url"
-	"strings"
 )
 
 type Source interface {
+	// Read Secrets from the Source
 	ReadSecrets() (secretsMap, error)
+
+	// Write Secrets to the Source
 	WriteSecrets(secretsMap) error
 }
 
+type SourceConstructor func(*url.URL) (Source, error)
+
+// All supported Sources
+var sources = map[string]SourceConstructor{
+	"file":       newFileSourceFromURI,
+	"k8s":        newK8sSourceFromURI,
+	"kubernetes": newK8sSourceFromURI,
+	"vault":      newVaultSourceFromURI,
+	"std":        newStdSourceFromURI,
+}
+
+// New creates a new source from a URI. The URI is parsed,
+// and the scheme is used to determine the source type.
 func New(sourceUri string) (Source, error) {
 	parsedUri, err := url.Parse(sourceUri)
 
@@ -22,17 +37,11 @@ func New(sourceUri string) (Source, error) {
 		parsedUri.Scheme = "file"
 	}
 
-	switch parsedUri.Scheme {
-	case "file":
-		return newFileSource(parsedUri.Host + parsedUri.Path), nil
+	sourceFactory, ok := sources[parsedUri.Scheme]
 
-	case "vault":
-		return newVaultSource(parsedUri.Host, strings.Trim(parsedUri.Path, "/"))
-
-	case "std":
-		return newStdSource(), nil
-
+	if !ok {
+		return nil, fmt.Errorf("Unknown source type: %s", parsedUri.Scheme)
 	}
 
-	return nil, fmt.Errorf("Unknown source type: %s", parsedUri.Scheme)
+	return sourceFactory(parsedUri)
 }

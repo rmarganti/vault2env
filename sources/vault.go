@@ -3,7 +3,9 @@ package sources
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	vault "github.com/hashicorp/vault/api"
@@ -15,8 +17,12 @@ type vaultSource struct {
 	secretPath string
 }
 
+func newVaultSourceFromURI(uri *url.URL) (Source, error) {
+	return newVaultSource(uri.Host, strings.Trim(uri.Path, "/"))
+}
+
 func newVaultSource(mountPath, secretPath string) (*vaultSource, error) {
-	token, err := findToken()
+	token, err := findVaultToken()
 
 	if err != nil {
 		return nil, err
@@ -41,26 +47,14 @@ func (src *vaultSource) ReadSecrets() (secretsMap, error) {
 		return nil, fmt.Errorf("Error fetching secret: %w", err)
 	}
 
-	// Convert all interface{} values to strings
-	secrets := make(secretsMap, len(vaultSecrets.Data))
-	for k, v := range vaultSecrets.Data {
-		secrets[k] = fmt.Sprint(v)
-	}
-
-	return secrets, nil
+	return NewSecretsFromInterfaceMap(vaultSecrets.Data), nil
 }
 
 func (src *vaultSource) WriteSecrets(secrets secretsMap) error {
 	fmt.Fprintln(os.Stderr, "Writing secrets to Vault…")
 
-	// Convert the map[string]string to map[string]interface{}
-	vaultSecrets := make(map[string]interface{}, len(secrets))
-	for k, v := range secrets {
-		vaultSecrets[k] = v
-	}
-
 	err := src.client.KVv1(src.mountPath).
-		Put(context.Background(), src.secretPath, vaultSecrets)
+		Put(context.Background(), src.secretPath, secrets.ToInterfaceMap())
 
 	if err != nil {
 		return fmt.Errorf("Unable to write secrets to Vault: %w", err)
@@ -87,7 +81,7 @@ func newVaultClient(token string) (*vault.Client, error) {
 
 // Find a Vault token to use. First, check the VAULT_TOKEN environment variable.
 // If that's not set, check the ~/.vault-token file.
-func findToken() (string, error) {
+func findVaultToken() (string, error) {
 	// Try the VAULT_TOKEN environment variable
 
 	token := os.Getenv("VAULT_TOKEN")
