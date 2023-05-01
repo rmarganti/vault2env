@@ -16,7 +16,6 @@ import (
 
 type k8sSource struct {
 	client     k8sCoreV1Types.SecretInterface
-	k8sContext string
 	secretName string
 }
 
@@ -25,13 +24,13 @@ func newK8sSourceFromURI(uri *url.URL) (Source, error) {
 }
 
 func newK8sSource(k8sContext, secretName string) (*k8sSource, error) {
-	client, err := newK8sClient()
+	client, err := newK8sClient(k8sContext)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &k8sSource{client, k8sContext, secretName}, nil
+	return &k8sSource{client, secretName}, nil
 }
 
 func (src *k8sSource) ReadSecrets() (secretsMap, error) {
@@ -65,7 +64,7 @@ func (src *k8sSource) WriteSecrets(secrets secretsMap) error {
 		Type:       "Opaque",
 	}
 
-	_, err := src.client.Update(context.Background(), &secretSpec, k8sMetaV1.UpdateOptions{ })
+	_, err := src.client.Update(context.Background(), &secretSpec, k8sMetaV1.UpdateOptions{})
 
 	if err != nil {
 		return fmt.Errorf("Error writing secrets to Kubernetes: %w", err)
@@ -74,7 +73,7 @@ func (src *k8sSource) WriteSecrets(secrets secretsMap) error {
 	return nil
 }
 
-func newK8sClient() (k8sCoreV1Types.SecretInterface, error) {
+func newK8sClient(k8sContext string) (k8sCoreV1Types.SecretInterface, error) {
 	// It is standard for K8s CLIs to accept a custom KUBECONFIG path.
 	kubeconfig := os.Getenv("KUBECONFIG")
 
@@ -83,7 +82,12 @@ func newK8sClient() (k8sCoreV1Types.SecretInterface, error) {
 		kubeconfig = os.Getenv("HOME") + "/.kube/config"
 	}
 
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
+		&clientcmd.ConfigOverrides{
+			CurrentContext: k8sContext,
+			// ClusterInfo: clientcmdapi.Cluster{Server: ""},
+		}).ClientConfig()
 
 	if err != nil {
 		panic(err.Error())
