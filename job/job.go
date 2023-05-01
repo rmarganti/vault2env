@@ -21,13 +21,13 @@ func New(cfg *config.ConfigFile, originUri, targetUri, preset string) (job, erro
 
 	presetOrigin, presetTarget := getPresetSources(cfg, preset)
 
-	if isInputPiped() {
+	if isPiped(os.Stdin) {
 		originUri = "std://"
 	} else if originUri == "" {
 		originUri = presetOrigin
 	}
 
-	if isOutputPiped() {
+	if isPiped(os.Stdout) {
 		targetUri = "std://"
 	} else if targetUri == "" {
 		targetUri = presetTarget
@@ -73,34 +73,19 @@ func getPresetSources(cfg *config.ConfigFile, preset string) (string, string) {
 	return presetCfg.Origin, presetCfg.Target
 }
 
-// Determine if our output is being piped. Examples where this occurs:
+// Determine if a File is piped. Most likely, that File is actually
+// a handler for Stdin or Stdout. Examples where this occurs:
 //
 // ```sh
 // cat .input.env | vault2env
 // vault2env < input.env
 // ````
-func isInputPiped() bool {
-	stdin, err := os.Stdin.Stat()
+func isPiped(file *os.File) bool {
+	fileInfo, err := file.Stat()
 
 	if err != nil {
 		return false
 	}
 
-	return (stdin.Mode() & os.ModeCharDevice) != os.ModeCharDevice
-}
-
-// Determine if our output is being piped. Examples where this occurs:
-//
-// ```sh
-// vault2env | cat
-// vault2env > output.env
-// ```
-func isOutputPiped() bool {
-	stdout, err := os.Stdout.Stat()
-
-	if err != nil {
-		return false
-	}
-
-	return (stdout.Mode() & os.ModeCharDevice) != os.ModeCharDevice
+	return (fileInfo.Mode() & os.ModeCharDevice) != os.ModeCharDevice
 }
