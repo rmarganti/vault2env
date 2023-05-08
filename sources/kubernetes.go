@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	k8sCoreV1 "k8s.io/api/core/v1"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	k8sMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	k8sCoreV1Types "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -50,7 +51,19 @@ func (src *k8sSource) ReadSecrets() (secretsMap, error) {
 }
 
 func (src *k8sSource) WriteSecrets(secrets secretsMap) error {
-	fmt.Fprintln(os.Stderr, "Writing secrets to Kubernetes…")
+	fmt.Fprintln(os.Stderr, "Checking for existing secrets in Kubernetes…")
+
+	_, err := src.ReadSecrets()
+
+	secretNeedsCreated := false
+
+	if k8sErrors.IsNotFound(err) {
+		secretNeedsCreated = true
+	}
+
+	if !secretNeedsCreated && err != nil {
+		return fmt.Errorf("Error checking for existing secrets in Kubernetes: %w", err)
+	}
 
 	secretSpec := k8sCoreV1.Secret{
 		TypeMeta: k8sMetaV1.TypeMeta{
@@ -60,14 +73,36 @@ func (src *k8sSource) WriteSecrets(secrets secretsMap) error {
 		ObjectMeta: k8sMetaV1.ObjectMeta{
 			Name: src.secretName,
 		},
-		StringData: map[string]string{},
+		StringData: secrets,
 		Type:       "Opaque",
 	}
 
-	_, err := src.client.Update(context.Background(), &secretSpec, k8sMetaV1.UpdateOptions{})
+	if secretNeedsCreated {
+		return src.createSecret(&secretSpec)
+	} else {
+		return src.updateSecret(&secretSpec)
+	}
+}
+
+func (src *k8sSource) createSecret(secretSpec *k8sCoreV1.Secret) error {
+	fmt.Fprintln(os.Stderr, "Creating new secret…")
+
+	_, err := src.client.Create(context.Background(), secretSpec, k8sMetaV1.CreateOptions{})
 
 	if err != nil {
-		return fmt.Errorf("Error writing secrets to Kubernetes: %w", err)
+		return fmt.Errorf("Error updating secrets: %w", err)
+	}
+
+	return nil
+}
+
+func (src *k8sSource) updateSecret(secretSpec *k8sCoreV1.Secret) error {
+	fmt.Fprintln(os.Stderr, "Updating existing secret…")
+
+	_, err := src.client.Update(context.Background(), secretSpec, k8sMetaV1.UpdateOptions{ })
+
+	if err != nil {
+		return fmt.Errorf("Error updating secrets: %w", err)
 	}
 
 	return nil
@@ -86,7 +121,6 @@ func newK8sClient(k8sContext string) (k8sCoreV1Types.SecretInterface, error) {
 		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
 		&clientcmd.ConfigOverrides{
 			CurrentContext: k8sContext,
-			// ClusterInfo: clientcmdapi.Cluster{Server: ""},
 		}).ClientConfig()
 
 	if err != nil {
