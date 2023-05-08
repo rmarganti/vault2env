@@ -51,8 +51,6 @@ func (src *k8sSource) ReadSecrets() (secretsMap, error) {
 }
 
 func (src *k8sSource) WriteSecrets(secrets secretsMap) error {
-	fmt.Fprintln(os.Stderr, "Checking for existing secrets in Kubernetes…")
-
 	_, err := src.ReadSecrets()
 
 	secretNeedsCreated := false
@@ -85,7 +83,7 @@ func (src *k8sSource) WriteSecrets(secrets secretsMap) error {
 }
 
 func (src *k8sSource) createSecret(secretSpec *k8sCoreV1.Secret) error {
-	fmt.Fprintln(os.Stderr, "Creating new secret…")
+	fmt.Fprintln(os.Stderr, "Creating new secret in Kubernetes…")
 
 	_, err := src.client.Create(context.Background(), secretSpec, k8sMetaV1.CreateOptions{})
 
@@ -97,9 +95,9 @@ func (src *k8sSource) createSecret(secretSpec *k8sCoreV1.Secret) error {
 }
 
 func (src *k8sSource) updateSecret(secretSpec *k8sCoreV1.Secret) error {
-	fmt.Fprintln(os.Stderr, "Updating existing secret…")
+	fmt.Fprintln(os.Stderr, "Updating existing secrets in Kubernetes…")
 
-	_, err := src.client.Update(context.Background(), secretSpec, k8sMetaV1.UpdateOptions{ })
+	_, err := src.client.Update(context.Background(), secretSpec, k8sMetaV1.UpdateOptions{})
 
 	if err != nil {
 		return fmt.Errorf("Error updating secrets: %w", err)
